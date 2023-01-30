@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Dcoya's blogs website
+  version: 1.0.0
+  description: A Flask RESTful API to manage the blogs website
+servers:
+  - url: http://127.0.0.1:5000
+
+paths:
+  /login:
+    post:
+      summary: User log in (authentication)
+      description: Authenticates a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogIn'
+      responses:
+        200:
+          description: User successfully logged in!
+        401:
+          description: Invalid credentials
+
+  /register:
+    post:
+      summary: Registers a new user
+      description: Adds a new user to the data base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+      responses:
+        200:
+          description: User has been added!
+        409:
+          description: This email/username is already in use. Please insert a different email address
+
+  /registerposter:
+    post:
+      summary: Registers a new poster user (a user with permissions to post blog posts)
+      description: Adds a new poster user to the data base. In a real website this API would be available only to higher clearance users (e.g. admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+      responses:
+        200:
+          description: User has been added!
+        409:
+          description: This email/username is already in use. Please insert a different email address
+
+  /createblog:
+    post:
+      summary: Creates a new blog
+      description: Adds a new blog to the data base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Blog'
+      responses:
+        200:
+          description: Blog Created!
+        409:
+          description: A blog with this title already exists. Please choose a different title
+        400:
+          description: error {e}.. Please make sure you have sent all required data to create this blog:blog_title
+
+  /allblogs:
+    get:
+      summary: Get all blogs
+      description: Returns a list of all blogs
+      responses:
+        200:
+          description: There are currently no blogs posted/The list of blogs
+        404:
+          description: No blogs found
+
+  /addlike:
+    post:
+      summary: Adds a like to an existing post
+      description: Creates and adds a like to an existing post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddLike'
+      responses:
+        404:
+          description: Post not found/No such user exists
+        403:
+          description: You have already liked this post
+        201:
+          description: Like with the ID of {like.id} added to post with the ID of {post.id} - {post.title}
+
+  /removelike:
+    delete:
+      summary: Removes a like from an existing post
+      description: Removes the like (specific to the user) from an existing post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveLike'
+      responses:
+        404:
+          description: Post not found/Like has already been removed/No such user exists
+        403:
+          description: Insufficient permissions for selected user to perform this operation as you are not the like creator
+        200:
+          description: Like removed
+        400:
+          description: error {e}.. Please make sure you have sent all required data to delete this like:post_id and like_id
+
+  /createpost:
+    post:
+      summary: Creates a new post
+      description: Creates a new post and adds it to the data base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePost'
+      responses:
+        404:
+          description: No blog with the ID of {args.blog_id} is found
+        409:
+          description: A post with this title already exists. Please choose a different title
+        201:
+          description: Your Post Has been added
+        400:
+          description: error {e}.. Please make sure you have sent all required data to create this post:post_title, post_content and blog_id
+        403:
+          description: You do not have the sufficient permissions to create a post!
+
+  /deletepost:
+    delete:
+      summary: Deletes an existing post
+      description: Deletes an existing post and removes it from the data base
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletePost'
+      responses:
+        404:
+          description: Post not found
+        200:
+          description: The selected post has been deleted
+        400:
+          description: error {e}.. Please make sure you have sent all required data to delete this post:post_title
+        403:
+          description: You do not have the sufficient permissions to delete a post!/You do not have the sufficient permissions to delete this post, as you are not its author
+
+  /editpost:
+    put:
+      summary: Edits an existing post
+      description: Edits the content of an existing post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditPost'
+      responses:
+        200:
+          description: Your selected post has been edited
+        400:
+          description: error {e}.. Please make sure you have sent all required data to edit this post:post_title and new_content
+        403:
+          description: You do not have the sufficient permissions to edit a post!/You do not have the sufficient permissions to edit this post, as you are not its author
+
+components:
+  schemas:
+
+    LogIn:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    Register:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+
+    Blog:
+      type: object
+      required:
+        - blog_title
+      properties:
+        blog_title:
+          type: string
+
+    AddLike:
+      type: object
+      required:
+        - post_title
+      properties:
+        post_title:
+          type: string
+
+    RemoveLike:
+      type: object
+      required:
+        - post_id
+        - like_id
+      properties:
+        post_id:
+          type: integer
+          format: int64
+        like_id:
+          type: integer
+          format: int64
+
+    CreatePost:
+      type: object
+      required:
+        - post_title
+        - post_content
+        - blog_id
+      properties:
+        post_title:
+          type: string
+        post_content:
+          type: string
+        blog_id:
+          type: integer
+          format: int64
+
+    DeletePost:
+      type: object
+      required:
+        - post_title
+      properties:
+        post_title:
+          type: string
+
+    EditPost:
+      type: object
+      required:
+        - post_title
+        - new_content
+      properties:
+        post_title:
+          type: string
+        new_content:
+          type: string
+
+
