@@ -1,6 +1,7 @@
 from flask_restx import Resource, reqparse
 from sqlalchemy.orm import sessionmaker
 from DataBaseDir.DataBaseSchema import User
+from Enforcers.EnforcersMethods import *
 
 
 class RegistrationApi(Resource):
@@ -18,6 +19,14 @@ class RegistrationApi(Resource):
         except Exception as e:
             return {"message": f"error {e}.. Please make sure you have sent all required data to add a user: "
                                "username, email and password"}, 400
+
+        # Rules enforcers
+        enforcer = EnforcersMethods()
+        for key in args.keys():
+            print(args[key])
+            enforcer.arbitrary_rule_enforcer(args[key])
+            args[key] = enforcer.white_space_trail_cleaner(args[key])
+            print(args[key])
 
         session = sessionmaker(bind=engine)()
         user = User(username=args.username, email=args.email, password=args.password, can_post=can_post)
