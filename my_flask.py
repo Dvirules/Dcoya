@@ -12,7 +12,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret-key'
-api = Api(app, default_swagger_filename='static/APIDocumentation.yaml')
+api = Api(app)
 engine = DataBase().engine
 
 # Swagger specific. Please go to http://127.0.0.1:5000/documentation/#/ for full documentation
